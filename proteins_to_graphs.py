@@ -24,7 +24,7 @@ from Bio import SeqIO
 from Bio.PDB.PDBParser import PDBParser
 
 
-ftrs = np.load("../human_features/pdb_to_seqvec_dict.npy", allow_pickle=True)
+ftrs = np.load("human_features/pdb_to_seqvec_dict.npy", allow_pickle=True)
 
 
 # list of 20 proteins
@@ -229,4 +229,4 @@ class ProteinDataset(Dataset):
         return torch.tensor(np.hstack((one_hot_symb, res_ftrs_out)), dtype = torch.float)
           
         
-prot_graphs = ProteinDataset("../human_features/")
+prot_graphs = ProteinDataset("human_features/")

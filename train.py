@@ -11,7 +11,7 @@ import torch_optimizer as optim
 from torch.optim.lr_scheduler import MultiStepLR, ReduceLROnPlateau
 from metrics import *
 
-device = torch.device("cuda:1") if torch.cuda.is_available() else torch.cuda("cpu")
+device = torch.device("cuda:0") if torch.cuda.is_available() else torch.cuda("cpu")
 
 import torch.nn as nn
 import networkx as nx
@@ -35,43 +35,57 @@ n_iterations = math.ceil(total_samples/5)
  
 #utilities
 def train(model, device, trainloader, optimizer, epoch):
-
   print(f'Training on {len(trainloader)} samples.....')
   model.train()
   loss_func = nn.MSELoss()
   predictions_tr = torch.Tensor()
   scheduler = MultiStepLR(optimizer, milestones=[1,5], gamma=0.5)
   labels_tr = torch.Tensor()
-  for count,(prot_1, prot_2, label) in enumerate(trainloader):
-    prot_1 = prot_1.to(device)
-    prot_2 = prot_2.to(device)
+  for count,((x1s, edge_index1s), (x2s, edge_index2s), labels) in enumerate(trainloader):
+    batch_size = len(x1s)
+    prot_1_list = []
+    prot_2_list = []
+    
+    # Create Data objects for each protein in the batch
+    for i in range(batch_size):
+        prot_1 = Data(x=x1s[i], edge_index=edge_index1s[i]).to(device)
+        prot_2 = Data(x=x2s[i], edge_index=edge_index2s[i]).to(device)
+        prot_1_list.append(prot_1)
+        prot_2_list.append(prot_2)
+    
     optimizer.zero_grad()
-    output = model(prot_1, prot_2)
+    output = model(prot_1_list, prot_2_list)
     predictions_tr = torch.cat((predictions_tr, output.cpu()), 0)
-    labels_tr = torch.cat((labels_tr, label.view(-1,1).cpu()), 0)
-    loss = loss_func(output, label.view(-1,1).float().to(device))
+    labels_tr = torch.cat((labels_tr, labels.view(-1,1).cpu()), 0)
+    loss = loss_func(output, labels.view(-1,1).float().to(device))
     loss.backward()
     optimizer.step()
   scheduler.step()
   labels_tr = labels_tr.detach().numpy()
   predictions_tr = predictions_tr.detach().numpy()
-  acc_tr = get_accuracy(labels_tr, predictions_tr , 0.5)
+  acc_tr = get_accuracy(labels_tr, predictions_tr, 0.5)
   print(f'Epoch {epoch-1} / 30 [==============================] - train_loss : {loss} - train_accuracy : {acc_tr}')
-    
- 
 
 def predict(model, device, loader):
   model.eval()
   predictions = torch.Tensor()
   labels = torch.Tensor()
   with torch.no_grad():
-    for prot_1, prot_2, label in loader:
-      prot_1 = prot_1.to(device)
-      prot_2 = prot_2.to(device)
-      #print(torch.Tensor.size(prot_1.x), torch.Tensor.size(prot_2.x))
-      output = model(prot_1, prot_2)
+    for (x1s, edge_index1s), (x2s, edge_index2s), batch_labels in loader:
+      batch_size = len(x1s)
+      prot_1_list = []
+      prot_2_list = []
+      
+      # Create Data objects for each protein in the batch
+      for i in range(batch_size):
+          prot_1 = Data(x=x1s[i], edge_index=edge_index1s[i]).to(device)
+          prot_2 = Data(x=x2s[i], edge_index=edge_index2s[i]).to(device)
+          prot_1_list.append(prot_1)
+          prot_2_list.append(prot_2)
+      
+      output = model(prot_1_list, prot_2_list)
       predictions = torch.cat((predictions, output.cpu()), 0)
-      labels = torch.cat((labels, label.view(-1,1).cpu()), 0)
+      labels = torch.cat((labels, batch_labels.view(-1,1).cpu()), 0)
   labels = labels.numpy()
   predictions = predictions.numpy()
   return labels.flatten(), predictions.flatten()
@@ -104,7 +118,7 @@ for epoch in range(num_epochs):
   if(accuracy > best_accuracy):
     best_accuracy = accuracy
     best_acc_epoch = epoch
-    torch.save(model.state_dict(), "../human_features/GCN.pth") #path to save the model
+    torch.save(model.state_dict(), "human_features/GCN.pth") #path to save the model
     print("Model")
   if(loss< min_loss):
     epochs_no_improve = 0

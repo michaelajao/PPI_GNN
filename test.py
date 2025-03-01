@@ -9,7 +9,7 @@ from models import GCNN, AttGNN
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.cuda("cpu")
 model = GCNN()
-model.load_state_dict(torch.load("../GCNN.pth")) #path to load the model
+model.load_state_dict(torch.load("GCNN.pth")) #path to load the model
 model.to(device)
 model.eval()
 predictions = torch.Tensor()

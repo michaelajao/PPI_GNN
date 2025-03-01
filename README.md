@@ -1,14 +1,46 @@
 # PPI_GNN
-In order to replicate the results mentioned in paper, please follow the following steps:
-  1. Download the Pan's human features file and place the files at ../human_features/processed/. The link is given in PPI_GNN/Human_features/README.md. For the S.      cerevisiae PPI dataset, download the input feature file and place it at ../S. cerevisiae/processed/. The link is given in PPI_GNN/S. cerevisiae/README.md.
-  2. Next use the command: python train.py to train the model.
 
+## Replication Steps
 
-The steps to predicting protein interactions on a new dataset are:
-  1. First, get the node features from protein sequences using the SeqVec method (seqvec_embedding.py) and then build the protein graph (proteins_to_graphs.py).
-  2. Next, use the command "python data_prepare.py" to get input features for the model.
-  3. Then, use the command "python train.py" to train the model.
-  4. Use the command: "python test.py" to evaluate the trained model on unseen data (test set).
+1. Download required feature files:
 
-To create the ppi_env environment, run:
-$ conda env create -f ppi_env.yml
+    - For human features: Place files in `../human_features/processed/` (See `PPI_GNN/Human_features/README.md` for link)
+    - For S. cerevisiae PPI dataset: Place files in `../S. cerevisiae/processed/` (See `PPI_GNN/S. cerevisiae/README.md` for link)
+
+1. Train the model:
+
+    ```bash
+    python train.py
+    ```
+
+## Using the Model with New Dataset
+
+1. Generate node features:
+
+- Use SeqVec method (`seqvec_embedding.py`) for protein sequences
+- Build protein graph (`proteins_to_graphs.py`)
+
+2. Prepare input features:
+
+    ```bash
+    python data_prepare.py
+    ```
+
+1. Train the model:
+
+    ```bash
+    python train.py
+    ```
+
+1. Evaluate on test set:
+
+    ```bash
+    python test.py
+    ```
+
+## Environment Setup
+
+Create the environment using:
+```bash
+conda env create -f ppi_env.yml
+```

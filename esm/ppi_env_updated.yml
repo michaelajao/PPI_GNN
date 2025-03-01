@@ -1,0 +1,23 @@
+name: ppi_env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pytorch
+  - cudatoolkit=10.2
+  - pip
+  - pip:
+    - fair-esm
+    - torch-geometric
+    - torch-scatter
+    - torch-sparse
+    - biographs
+    - biopython
+    - numpy
+    - pandas
+    - matplotlib
+    - scikit-learn
+    - tqdm
+    - networkx
